@@ -1,63 +1,76 @@
+
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": ["image_id", "objects", "attributes"],
-    "properties": {
-        "image_id": {"type": "string"},
-        "viewpoint": {"type": "string"},
-        "patient_id": {"type": ["integer", "string"]},
-        "study_id": {"type": ["integer", "string"]},
-        "gender": {"type": "string"},
-        "age_decile": {"type": "string"},
-        "reason_for_exam": {"type": "string"},
-        "StudyDateTime": {"type": "string"},
-        "StudyOrder": {"type": "integer"},
-        "objects": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["object_id", "bbox_name", "name", "synsets"],
-                "properties": {
-                    "object_id": {"type": "string"},
-                    "x1": {"type": "integer"},
-                    "y1": {"type": "integer"},
-                    "x2": {"type": "integer"},
-                    "y2": {"type": "integer"},
-                    "width": {"type": "integer"},
-                    "height": {"type": "integer"},
-                    "bbox_name": {"type": "string"},
-                    "synsets": {"type": "array", "items": {"type": "string"}},
-                    "name": {"type": "string"}
-                }
-            }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image_id": {"type": "string"},
+    "viewpoint": {"type": "string"},
+    "patient_id": {"type": ["integer", "string"]},
+    "study_id": {"type": ["integer", "string"]},
+    "gender": {"type": "string"},
+    "age_decile": {"type": "string"},
+    "reason_for_exam": {"type": "string"},
+    "StudyOrder": {"type": "integer"},
+    "StudyDateTime": {"type": "string"},
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "object_id": {"type": "string"},
+          "bbox_name": {"type": "string"},
+          "name": {"type": "string"},
+          "synsets": {"type": "array", "items": {"type": "string"}},
+          "x1": {"type": "integer"},
+          "y1": {"type": "integer"},
+          "x2": {"type": "integer"},
+          "y2": {"type": "integer"},
+          "width": {"type": "integer"},
+          "height": {"type": "integer"},
+          "original_x1": {"type": "integer"},
+          "original_y1": {"type": "integer"},
+          "original_x2": {"type": "integer"},
+          "original_y2": {"type": "integer"},
+          "original_width": {"type": "integer"},
+          "original_height": {"type": "integer"},
+          "updated": {"type": "boolean"}
         },
-        "attributes": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["object_id", "name", "attributes"],
-                "properties": {
-                    "object_id": {"type": "string"},
-                    "name": {"type": "string"},
-                    "bbox_name": {"type": "string"},
-                    "synsets": {"type": "array", "items": {"type": "string"}},
-                    "attributes": {
-                        "type": "array",
-                        "items": {
-                            "type": "array",
-                            "items": {"type": "string"}
-                        }
-                    },
-                    "phrases": {"type": "array", "items": {"type": "string"}},
-                    "phrase_IDs": {"type": "array", "items": {"type": "string"}},
-                    "sections": {"type": "array", "items": {"type": "string"}},
-                    "comparison_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
-                    "temporal_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
-                    "severity_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
-                    "texture_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}}
-                }
-            }
+        "required": ["object_id", "bbox_name", "name", "synsets"]
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bbox_name": {"type": "string"},
+          "name": {"type": "string"},
+          "synsets": {"type": "array", "items": {"type": "string"}},
+          "attributes": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "attributes_ids": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "phrases": {"type": "array", "items": {"type": "string"}},
+          "phrase_IDs": {"type": "array", "items": {"type": "string"}},
+          "sections": {"type": "array", "items": {"type": "string"}},
+          "comparison_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "temporal_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "severity_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "texture_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+          "object_id": {"type": "string"}
         },
-        "relationships": {"type": "array"}
+        "required": ["bbox_name", "name", "attributes", "phrases", "object_id"]
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {"type": "string"},
+          "target": {"type": "string"},
+          "relation": {"type": "string"}
+        }
+      }
     }
+  },
+  "required": ["image_id", "viewpoint", "attributes", "objects", "relationships"]
 }

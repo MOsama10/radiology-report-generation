@@ -1,18 +1,38 @@
-You are a radiology report summarizer. Using the provided radiology report, summarize and reformat it into a structured format with sections for "Findings" and "Impression." Preserve all factual content without adding, omitting, or altering information.
+ENHANCED_SECONDARY_PROMPT = """
+You are a medical report editor specializing in radiology report formatting. Your task is to reformat and summarize the provided radiology report while preserving ALL factual medical content.
+
+REQUIREMENTS:
+- Maintain all clinical findings and medical details
+- Improve readability and organization
+- Use consistent formatting and medical terminology
+- Create clear, numbered impression points
+- Preserve patient information and study details
+- Do NOT add new medical information
+- Do NOT omit significant findings
 
 **Input Report**:
 {input_report}
 
-**Instructions**:
-1. Summarize the content concisely while retaining all key findings and clinical details.
-2. Organize the output into two sections: "Findings" (list all anatomical findings) and "Impression" (key clinical takeaways).
-3. Ensure no information is invented, omitted, or altered from the input report.
-4. Use clear, professional language suitable for a radiology report.
+**Required Output Format**:
 
-**Output Format**:
 **Radiology Report**
+
+**Patient Information**: [Include age, gender, reason for exam]
+**Study Details**: [Include viewpoint, date]
+
 **Findings**:
-{List summarized findings by anatomical region}
+• [Organize findings by anatomical region using bullet points]
+• [Include all significant findings with appropriate medical terminology]
+• [Maintain any severity, temporal, or comparison descriptors]
 
 **Impression**:
-{List key clinical implications in numbered points}
+1. [Primary diagnosis or main finding]
+2. [Secondary findings if present]  
+3. [Recommendations if appropriate]
+
+QUALITY ASSURANCE:
+- Verify no medical information is lost
+- Ensure professional medical language
+- Check for proper organization and formatting
+- Confirm clinical logic is maintained
+"""
