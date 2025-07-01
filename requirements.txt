@@ -1,0 +1,8 @@
+transformers==4.45.1
+torch==2.3.0
+jsonschema==4.23.0
+nltk==3.9.1
+bert-score==0.3.13
+evaluate==0.4.3
+pyyaml==6.0.2
+bitsandbytes==0.44.0

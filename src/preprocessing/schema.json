@@ -1,0 +1,63 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["image_id", "objects", "attributes"],
+    "properties": {
+        "image_id": {"type": "string"},
+        "viewpoint": {"type": "string"},
+        "patient_id": {"type": ["integer", "string"]},
+        "study_id": {"type": ["integer", "string"]},
+        "gender": {"type": "string"},
+        "age_decile": {"type": "string"},
+        "reason_for_exam": {"type": "string"},
+        "StudyDateTime": {"type": "string"},
+        "StudyOrder": {"type": "integer"},
+        "objects": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["object_id", "bbox_name", "name", "synsets"],
+                "properties": {
+                    "object_id": {"type": "string"},
+                    "x1": {"type": "integer"},
+                    "y1": {"type": "integer"},
+                    "x2": {"type": "integer"},
+                    "y2": {"type": "integer"},
+                    "width": {"type": "integer"},
+                    "height": {"type": "integer"},
+                    "bbox_name": {"type": "string"},
+                    "synsets": {"type": "array", "items": {"type": "string"}},
+                    "name": {"type": "string"}
+                }
+            }
+        },
+        "attributes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["object_id", "name", "attributes"],
+                "properties": {
+                    "object_id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "bbox_name": {"type": "string"},
+                    "synsets": {"type": "array", "items": {"type": "string"}},
+                    "attributes": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {"type": "string"}
+                        }
+                    },
+                    "phrases": {"type": "array", "items": {"type": "string"}},
+                    "phrase_IDs": {"type": "array", "items": {"type": "string"}},
+                    "sections": {"type": "array", "items": {"type": "string"}},
+                    "comparison_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+                    "temporal_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+                    "severity_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+                    "texture_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}}
+                }
+            }
+        },
+        "relationships": {"type": "array"}
+    }
+}
