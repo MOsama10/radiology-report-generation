@@ -1,5 +1,5 @@
 
-# ENHANCED EVALUATION REPORT: report_processed_00f11709-ce2637cf-d7e74371-0fe48659-f3c88f78_SceneGraph.txt
+# EVALUATION REPORT: report_processed_00f11709-ce2637cf-d7e74371-0fe48659-f3c88f78_SceneGraph.txt
 **Generated on:** 2025-07-02 20:40:11
 **Device:** cuda 
 **Status:** ✅ PASSED (Threshold: 70)
