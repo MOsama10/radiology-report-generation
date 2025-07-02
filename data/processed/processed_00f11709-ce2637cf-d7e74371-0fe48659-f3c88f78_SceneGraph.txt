@@ -1,0 +1,8 @@
+**Patient Context**: A 40-50-year-old M with ___-year-old man, intubated.  Check interval change., AP view, studied on 2129-07-30 06:36:27 UTC.
+**Anatomical Findings**:
+- Right lung: normal, normal | Phrase: Lungs low in volume but clear. No pleural abnormality. | Comparison: [], [] | Temporal: [], [] | Severity: [], []
+- Left lung: normal, normal | Phrase: Lungs low in volume but clear. No pleural abnormality. | Comparison: [], [] | Temporal: [], [] | Severity: [], []
+- Superior mediastinum: endotracheal tube | Phrase: ET tube in standard placement at the thoracic inlet. | Comparison: [] | Temporal: [] | Severity: []
+- Cardiac shadow viewed radiologically;;Heart: enlarged cardiac silhouette, abnormal | Phrase: Severe cardiomegaly stable. | Comparison: ['comparison|yes|no change'] | Temporal: [] | Severity: ['severity|yes|severe']
+- Trachea: endotracheal tube | Phrase: ET tube in standard placement at the thoracic inlet. | Comparison: [] | Temporal: [] | Severity: []
+- Neck: endotracheal tube | Phrase: ET tube in standard placement at the thoracic inlet. | Comparison: [] | Temporal: [] | Severity: []

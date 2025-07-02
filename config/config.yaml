@@ -1,3 +1,43 @@
+# data:
+#   raw_dir: "data/raw"
+#   processed_dir: "data/processed"
+#   output_dir: "data/outputs"
+#   prompt_dir: "config/prompts"
+#   ground_truth_dir: "data/ground_truth/"
+
+# preprocessing:
+#   schema_file: "preprocessing/schema.json"
+
+
+# models:
+#   primary_llm:
+#     name: "mistralai/Mistral-7B-Instruct-v0.3"
+#     path: "models/primary_llm/"
+#     quantization: "4bit"
+#     max_tokens: 1024
+#     temperature: 0.3
+#     top_p: 0.85
+#     repetition_penalty: 1.15
+    
+#   secondary_llm:
+#     name: "facebook/bart-large-cnn"
+#     path: "models/secondary_llm/"
+#     quantization: "4bit"
+#     max_tokens: 512
+#     temperature: 0.2
+
+# hardware:
+#   device: "cuda"
+#   max_memory: "8GB"
+
+# evaluation:
+#   output_dir: data/evaluation_results
+#   metrics:
+#     - bleu
+#     - rouge
+#     - bertscore
+#     - meteor
+#     - semantic
 data:
   raw_dir: "data/raw"
   processed_dir: "data/processed"
@@ -8,33 +48,36 @@ data:
 preprocessing:
   schema_file: "preprocessing/schema.json"
 
-
 models:
   primary_llm:
-    name: "mistralai/Mistral-7B-Instruct-v0.3"
+    name: "mistralai/Mistral-7B-Instruct-v0.3"  # Excellent for RTX 4060
     path: "models/primary_llm/"
-    quantization: "4bit"
+    quantization: "4bit"  # Enable 4-bit quantization for 8GB VRAM
     max_tokens: 1024
     temperature: 0.3
     top_p: 0.85
     repetition_penalty: 1.15
     
-  secondary_llm:
-    name: "facebook/bart-large-cnn"
-    path: "models/secondary_llm/"
-    quantization: "4bit"
-    max_tokens: 512
+  evaluation_agent:
+    name: "NousResearch/Nous-Hermes-2-Mistral-7B-DPO"  # Specialized evaluation
+    path: "models/evaluation_agent/"
+    quantization: "4bit"  # Enable 4-bit quantization
+    max_tokens: 800
     temperature: 0.2
 
 hardware:
-  device: "cuda"
+  device: "cuda"  # Enable CUDA
   max_memory: "8GB"
+  gpu_memory_fraction: 0.9  # Use 90% of GPU memory
 
 evaluation:
-  output_dir: data/evaluation_results
+  output_dir: "data/outputs/evaluation_reports"
+  agent_enabled: true
+  quality_threshold: 70  # Higher threshold for GPU models
   metrics:
     - bleu
     - rouge
     - bertscore
     - meteor
     - semantic
+    - agent_score

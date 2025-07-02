@@ -1,8 +1,4 @@
 # Ignore large files and sensitive data
-/data/raw/*
-/data/processed/*
-/data/ground_truth/*
-/data/outputs/*
 /models/*
 /venv/
 *.pyc

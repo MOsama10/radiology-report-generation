@@ -1,0 +1,18 @@
+**Output Report:**
+**Patient**: 40-50 year old male **Reason for Exam**: Intubation check interval change **Study**: AP chest X-ray **Date**: 2129-07-30 06:36:27 UTC
+**Findings**:
+*Lungs*: The lungs appear low in volume but clear bilaterally. There is no evidence of pleural abnormality. 
+*Superior Mediastinum*: An endotracheal tube (ET tube) is noted to be in standard placement at the thoracic inlet. 
+
+*Cardiac Shadow*: The heart shows severe cardiomegaly, which appears stable compared to previous studies. 
+*Trachea*, *Neck*, and *Thorax*: Each of these areas contains an endotracheal tube in standard placement at the thoracic inlet.
+**Impression**:
+1. Stable severe cardiomegaly 2. Endotrachial tube in proper position throughout the neck, thorax, 
+and superior mediastinum 3. Clear lungs without pleural abnormality
+
+
+
+
+ ET tube in standard placement at the thoracic inlet.  Upper enteric drainage
+ tube passes into the stomach and out of view.  Severe cardiomegaly stable. 
+ Lungs low in volume but clear.  No pleural abnormality.
