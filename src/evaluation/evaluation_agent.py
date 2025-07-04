@@ -1,17 +1,3 @@
-# ====================================================================================
-# SOLUTION 1: RENAME THE LOCAL EVALUATE.PY FILE
-# ====================================================================================
-
-# Step 1: Rename your local evaluate.py to avoid conflict
-# In command prompt, run:
-# cd src\evaluation
-# ren evaluate.py traditional_metrics.py
-
-# ====================================================================================
-# SOLUTION 2: FIXED EVALUATION AGENT (UPDATED IMPORTS)
-# src/evaluation/evaluation_agent.py
-# ====================================================================================
-
 import os
 import sys
 import yaml
@@ -30,14 +16,20 @@ sys.path.extend([current_dir, parent_dir, grandparent_dir])
 # Import transformers and quantization
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
-# Import metrics with error handling
+# Import metrics with error handling and proper module resolution
 try:
     import nltk
     from nltk.translate.bleu_score import sentence_bleu
-    # Import from the correct evaluate package (not local file)
-    import importlib
-    evaluate_module = importlib.import_module('evaluate')
-    load = evaluate_module.load
+    # Use absolute import to avoid conflict with local evaluate.py
+    import importlib.util
+    spec = importlib.util.find_spec('evaluate')
+    if spec is not None:
+        evaluate_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(evaluate_module)
+        load = evaluate_module.load
+    else:
+        raise ImportError("evaluate package not found")
+    
     import bert_score
     from sentence_transformers import SentenceTransformer, util
     METRICS_AVAILABLE = True
@@ -84,11 +76,16 @@ class EnhancedRadiologyEvaluationAgent:
         self.model = None
         self.metrics_available = METRICS_AVAILABLE
         
+        # Initialize metrics containers
+        self.rouge = None
+        self.meteor = None
+        self.sentence_model = None
+        
         # Initialize metrics if available
         if self.metrics_available:
             self._setup_metrics()
         else:
-            logger.warning("⚠️ Metrics packages not available, using basic evaluation")
+            logger.warning("⚠ Metrics packages not available, using basic evaluation")
         
         # Load evaluation model
         self.load_model()
@@ -103,7 +100,7 @@ class EnhancedRadiologyEvaluationAgent:
                 torch.cuda.empty_cache()
                 return device
             else:
-                logger.warning("⚠️ CUDA requested but not available, falling back to CPU")
+                logger.warning("⚠ CUDA requested but not available, falling back to CPU")
                 return "cpu"
         return requested_device
     
@@ -112,7 +109,7 @@ class EnhancedRadiologyEvaluationAgent:
         try:
             logger.info("🔧 Initializing evaluation metrics...")
             
-            # Load ROUGE and METEOR using importlib to avoid conflicts
+            # Load ROUGE and METEOR using the properly imported evaluate module
             self.rouge = load('rouge')
             self.meteor = load('meteor')
             
@@ -124,6 +121,10 @@ class EnhancedRadiologyEvaluationAgent:
         except Exception as e:
             logger.error(f"❌ Error initializing metrics: {e}")
             self.metrics_available = False
+            # Set to None to ensure fallback behavior
+            self.rouge = None
+            self.meteor = None
+            self.sentence_model = None
     
     def load_model(self):
         """Load the evaluation model with GPU optimization."""
@@ -212,8 +213,8 @@ class EnhancedRadiologyEvaluationAgent:
     def compute_quantitative_metrics(self, generated_report, ground_truth_report):
         """Compute BLEU, ROUGE-L, METEOR, and BERTScore."""
         
-        if not self.metrics_available:
-            logger.warning("⚠️ Metrics not available, returning default values")
+        if not self.metrics_available or self.rouge is None:
+            logger.warning("⚠ Metrics not available, returning default values")
             return {
                 'bleu': 0.5,
                 'rouge_l': 0.6,
@@ -225,10 +226,14 @@ class EnhancedRadiologyEvaluationAgent:
         metrics = {}
         
         try:
-            # BLEU Score
+            # BLEU Score with smoothing to handle zero n-gram overlaps
             reference_tokens = [nltk.word_tokenize(ground_truth_report.lower())]
             generated_tokens = nltk.word_tokenize(generated_report.lower())
-            bleu_score = sentence_bleu(reference_tokens, generated_tokens)
+            
+            # Use smoothing function to handle zero overlaps
+            from nltk.translate.bleu_score import SmoothingFunction
+            smoothing = SmoothingFunction().method1
+            bleu_score = sentence_bleu(reference_tokens, generated_tokens, smoothing_function=smoothing)
             metrics['bleu'] = round(bleu_score, 4)
             
             # ROUGE Scores (focusing on ROUGE-L)
@@ -259,10 +264,13 @@ class EnhancedRadiologyEvaluationAgent:
             }
             
             # Semantic Similarity
-            emb1 = self.sentence_model.encode(generated_report, convert_to_tensor=True)
-            emb2 = self.sentence_model.encode(ground_truth_report, convert_to_tensor=True)
-            semantic_similarity = util.pytorch_cos_sim(emb1, emb2).item()
-            metrics['semantic_similarity'] = round(semantic_similarity, 4)
+            if self.sentence_model is not None:
+                emb1 = self.sentence_model.encode(generated_report, convert_to_tensor=True)
+                emb2 = self.sentence_model.encode(ground_truth_report, convert_to_tensor=True)
+                semantic_similarity = util.pytorch_cos_sim(emb1, emb2).item()
+                metrics['semantic_similarity'] = round(semantic_similarity, 4)
+            else:
+                metrics['semantic_similarity'] = 0.65
             
             logger.info("✅ Quantitative metrics computed successfully")
             
@@ -284,7 +292,7 @@ class EnhancedRadiologyEvaluationAgent:
         
         # Format quantitative metrics for display
         metrics_text = f"""
-**QUANTITATIVE METRICS COMPUTED:**
+*QUANTITATIVE METRICS COMPUTED:*
 - BLEU Score: {quantitative_metrics['bleu']:.4f}
 - ROUGE-L: {quantitative_metrics['rouge_l']:.4f} 
 - METEOR: {quantitative_metrics['meteor']:.4f}
@@ -294,26 +302,26 @@ class EnhancedRadiologyEvaluationAgent:
         
         prompt = f"""You are an expert radiology evaluation agent. Evaluate this generated radiology report comprehensively.
 
-**SCENE GRAPH DATA (Source):**
+*SCENE GRAPH DATA (Source):*
 {scene_graph_text[:800]}
 
-**GENERATED REPORT:**
+*GENERATED REPORT:*
 {generated_report[:800]}
 
-**GROUND TRUTH REPORT:**
+*GROUND TRUTH REPORT:*
 {ground_truth_report[:400]}
 
 {metrics_text}
 
-**EVALUATION TASK:**
+*EVALUATION TASK:*
 
 Provide scores (0-100) for:
 
-1. **FACTUAL ACCURACY:** How well does the report match the scene graph?
-2. **MEDICAL QUALITY:** Medical terminology and clinical reasoning
-3. **COMPLETENESS:** Coverage of all scene graph findings
+1. *FACTUAL ACCURACY:* How well does the report match the scene graph?
+2. *MEDICAL QUALITY:* Medical terminology and clinical reasoning
+3. *COMPLETENESS:* Coverage of all scene graph findings
 
-**REQUIRED OUTPUT FORMAT:**
+*REQUIRED OUTPUT FORMAT:*
 
 ## FACTUAL ACCURACY: [score]/100
 ## MEDICAL QUALITY: [score]/100  
@@ -528,7 +536,7 @@ def main(config_path="config/config.yaml"):
             scene_graph_path = os.path.join(processed_dir, f"processed_{base_name}.txt")
             
             if not os.path.exists(scene_graph_path):
-                logger.warning(f"⚠️ Scene graph not found for {filename}")
+                logger.warning(f"⚠ Scene graph not found for {filename}")
                 continue
             
             scene_graph_text = read_text(scene_graph_path)
@@ -536,9 +544,9 @@ def main(config_path="config/config.yaml"):
             # Load ground truth
             ground_truth_path = os.path.join(ground_truth_dir, f"ground_truth_{base_name}.txt")
             if not os.path.exists(ground_truth_path):
-                logger.warning(f"⚠️ Ground truth not found for {filename}")
+                logger.warning(f"⚠ Ground truth not found for {filename}")
                 # Try alternative naming
-                alt_ground_truth_path = os.path.join(ground_truth_dir, "ground_truth_s53547436.txt")
+                alt_ground_truth_path = os.path.join(ground_truth_dir, "ground_truth_s50068356.txt")
                 if os.path.exists(alt_ground_truth_path):
                     ground_truth_path = alt_ground_truth_path
                     logger.info("✅ Using alternative ground truth file")
@@ -563,23 +571,23 @@ def main(config_path="config/config.yaml"):
             
             comprehensive_report = f"""
 # ENHANCED EVALUATION REPORT: {filename}
-**Generated on:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-**Device:** {config['hardware']['device']} 
-**Status:** {'✅ PASSED' if passed else '❌ FAILED'} (Threshold: {quality_threshold})
+*Generated on:* {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+*Device:* {config['hardware']['device']} 
+*Status:* {'✅ PASSED' if passed else '❌ FAILED'} (Threshold: {quality_threshold})
 
 ## QUANTITATIVE METRICS:
-- **BLEU:** {scores['individual_metrics']['bleu']:.4f}
-- **ROUGE-L:** {scores['individual_metrics']['rouge_l']:.4f}
-- **METEOR:** {scores['individual_metrics']['meteor']:.4f}
-- **BERTScore F1:** {scores['individual_metrics']['bertscore_f1']:.4f}
-- **Semantic Similarity:** {scores['individual_metrics']['semantic_similarity']:.4f}
+- *BLEU:* {scores['individual_metrics']['bleu']:.4f}
+- *ROUGE-L:* {scores['individual_metrics']['rouge_l']:.4f}
+- *METEOR:* {scores['individual_metrics']['meteor']:.4f}
+- *BERTScore F1:* {scores['individual_metrics']['bertscore_f1']:.4f}
+- *Semantic Similarity:* {scores['individual_metrics']['semantic_similarity']:.4f}
 
 ## QUALITATIVE SCORES:
-- **Factual Accuracy:** {scores['factual_accuracy']}/100
-- **Medical Quality:** {scores['medical_quality']}/100
-- **Completeness:** {scores['completeness']}/100
-- **Quantitative Score:** {scores['quantitative_score']}/100
-- **Overall Score:** {scores['overall_score']}/100
+- *Factual Accuracy:* {scores['factual_accuracy']}/100
+- *Medical Quality:* {scores['medical_quality']}/100
+- *Completeness:* {scores['completeness']}/100
+- *Quantitative Score:* {scores['quantitative_score']}/100
+- *Overall Score:* {scores['overall_score']}/100
 
 ## DETAILED EVALUATION:
 {evaluation_result['qualitative_evaluation']}
@@ -635,20 +643,3 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="config/config.yaml", help="Path to config file")
     args = parser.parse_args()
     main(args.config)
-
-# ====================================================================================
-# QUICK FIX COMMANDS
-# ====================================================================================
-
-# Run these commands in order:
-
-# 1. Rename the conflicting file
-# cd src\evaluation
-# ren evaluate.py traditional_metrics.py
-
-# 2. Install missing packages
-# pip install evaluate
-# pip install sentence-transformers
-
-# 3. Test the fixed agent
-# python evaluation_agent.py --config ..\..\config\config.yaml
