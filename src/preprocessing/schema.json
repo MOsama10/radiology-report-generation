@@ -1,19 +1,126 @@
-
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Enhanced Scene Graph Schema",
+  "description": "Schema supporting both triplet-based and legacy scene graph formats",
   "type": "object",
   "properties": {
-    "image_id": {"type": "string"},
-    "viewpoint": {"type": "string"},
-    "patient_id": {"type": ["integer", "string"]},
-    "study_id": {"type": ["integer", "string"]},
-    "gender": {"type": "string"},
-    "age_decile": {"type": "string"},
-    "reason_for_exam": {"type": "string"},
-    "StudyOrder": {"type": "integer"},
-    "StudyDateTime": {"type": "string"},
+    "parameters": {
+      "type": "object",
+      "description": "Analysis parameters for the scene graph",
+      "properties": {
+        "obj_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Object detection confidence threshold"
+        },
+        "rel_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Relationship detection confidence threshold"
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of top predictions to include"
+        }
+      }
+    },
+    "image_name": {
+      "type": "string",
+      "description": "Identifier for the medical image"
+    },
+    "triplets": {
+      "type": "array",
+      "description": "Triplet-based findings with confidence scores",
+      "items": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Anatomical region or structure"
+          },
+          "predicate": {
+            "type": "string",
+            "enum": ["has", "does_not_have"],
+            "description": "Relationship type"
+          },
+          "object": {
+            "type": "string",
+            "description": "Medical finding or condition"
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence score for this triplet"
+          }
+        },
+        "required": ["subject", "predicate", "object", "score"]
+      }
+    },
+    "subjects": {
+      "type": "array",
+      "description": "List of anatomical subjects found in the image",
+      "items": {
+        "type": "string"
+      }
+    },
+    "predicates": {
+      "type": "array",
+      "description": "List of relationship predicates used",
+      "items": {
+        "type": "string"
+      }
+    },
     "objects": {
       "type": "array",
+      "description": "List of medical findings/objects detected",
+      "items": {
+        "type": "string"
+      }
+    },
+    "image_id": {
+      "type": "string",
+      "description": "Legacy: Image identifier"
+    },
+    "viewpoint": {
+      "type": "string",
+      "description": "X-ray viewpoint (AP, PA, Lateral, etc.)"
+    },
+    "patient_id": {
+      "type": ["integer", "string"],
+      "description": "Patient identifier"
+    },
+    "study_id": {
+      "type": ["integer", "string"],
+      "description": "Study identifier"
+    },
+    "gender": {
+      "type": "string",
+      "enum": ["M", "F", "Male", "Female", "Unknown"],
+      "description": "Patient gender"
+    },
+    "age_decile": {
+      "type": "string",
+      "description": "Patient age range (e.g., '40-50')"
+    },
+    "reason_for_exam": {
+      "type": "string",
+      "description": "Clinical indication for the examination"
+    },
+    "StudyOrder": {
+      "type": "integer",
+      "description": "Order of study in sequence"
+    },
+    "StudyDateTime": {
+      "type": "string",
+      "description": "Date and time of study"
+    },
+    "objects": {
+      "type": "array",
+      "description": "Legacy: Bounding box objects",
       "items": {
         "type": "object",
         "properties": {
@@ -32,14 +139,14 @@
           "original_x2": {"type": "integer"},
           "original_y2": {"type": "integer"},
           "original_width": {"type": "integer"},
-          "original_height": {"type": "integer"},
-          "updated": {"type": "boolean"}
+          "original_height": {"type": "integer"}
         },
-        "required": ["object_id", "bbox_name", "name", "synsets"]
+        "required": ["object_id", "bbox_name", "name"]
       }
     },
     "attributes": {
       "type": "array",
+      "description": "Legacy: Attribute-based findings",
       "items": {
         "type": "object",
         "properties": {
@@ -57,20 +164,38 @@
           "texture_cues": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
           "object_id": {"type": "string"}
         },
-        "required": ["bbox_name", "name", "attributes", "phrases", "object_id"]
+        "required": ["bbox_name", "name", "object_id"]
       }
     },
     "relationships": {
       "type": "array",
+      "description": "Legacy: Spatial/temporal relationships",
       "items": {
         "type": "object",
         "properties": {
-          "source": {"type": "string"},
-          "target": {"type": "string"},
-          "relation": {"type": "string"}
+          "relationship_id": {"type": "string"},
+          "predicate": {"type": "array", "items": {"type": "string"}},
+          "synsets": {"type": "array", "items": {"type": "string"}},
+          "relationship_names": {"type": "array", "items": {"type": "string"}},
+          "relationship_contexts": {"type": "array", "items": {"type": "number"}},
+          "phrase": {"type": "string"},
+          "attributes": {"type": "array", "items": {"type": "string"}},
+          "bbox_name": {"type": "string"},
+          "subject_id": {"type": "string"},
+          "object_id": {"type": "string"}
         }
       }
     }
   },
-  "required": ["image_id", "viewpoint", "attributes", "objects", "relationships"]
+  "anyOf": [
+    {
+      "description": "Triplet-based format",
+      "required": ["triplets", "subjects", "predicates", "objects"]
+    },
+    {
+      "description": "Legacy format",
+      "required": ["image_id", "viewpoint", "attributes"]
+    }
+  ],
+  "additionalProperties": true
 }
